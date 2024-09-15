@@ -1,0 +1,407 @@
+
+Car Price Predcition With Machine Learning
+The price of a car depends on a lot of factors like the goodwill of the brand of the car, features of the car, horsepower and the mileage it gives and many more. Car price prediction is one of the major research areas in machine learning. So if you want to learn how to train a car price prediction model then this project is for you.
+
+Importing Necessary Libraries
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+Loading The Dataset
+# Reading the csv file
+df = pd.read_csv("CarPrice.csv")
+df
+car_ID	symboling	CarName	fueltype	aspiration	doornumber	carbody	drivewheel	enginelocation	wheelbase	...	enginesize	fuelsystem	boreratio	stroke	compressionratio	horsepower	peakrpm	citympg	highwaympg	price
+0	1	3	alfa-romero giulia	gas	std	two	convertible	rwd	front	88.6	...	130	mpfi	3.47	2.68	9.0	111	5000	21	27	13495.0
+1	2	3	alfa-romero stelvio	gas	std	two	convertible	rwd	front	88.6	...	130	mpfi	3.47	2.68	9.0	111	5000	21	27	16500.0
+2	3	1	alfa-romero Quadrifoglio	gas	std	two	hatchback	rwd	front	94.5	...	152	mpfi	2.68	3.47	9.0	154	5000	19	26	16500.0
+3	4	2	audi 100 ls	gas	std	four	sedan	fwd	front	99.8	...	109	mpfi	3.19	3.40	10.0	102	5500	24	30	13950.0
+4	5	2	audi 100ls	gas	std	four	sedan	4wd	front	99.4	...	136	mpfi	3.19	3.40	8.0	115	5500	18	22	17450.0
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+200	201	-1	volvo 145e (sw)	gas	std	four	sedan	rwd	front	109.1	...	141	mpfi	3.78	3.15	9.5	114	5400	23	28	16845.0
+201	202	-1	volvo 144ea	gas	turbo	four	sedan	rwd	front	109.1	...	141	mpfi	3.78	3.15	8.7	160	5300	19	25	19045.0
+202	203	-1	volvo 244dl	gas	std	four	sedan	rwd	front	109.1	...	173	mpfi	3.58	2.87	8.8	134	5500	18	23	21485.0
+203	204	-1	volvo 246	diesel	turbo	four	sedan	rwd	front	109.1	...	145	idi	3.01	3.40	23.0	106	4800	26	27	22470.0
+204	205	-1	volvo 264gl	gas	turbo	four	sedan	rwd	front	109.1	...	141	mpfi	3.78	3.15	9.5	114	5400	19	25	22625.0
+205 rows × 26 columns
+
+Dropping Unwanted Column
+# Dropping car_ID because it is useless
+df = df.drop(["car_ID"],axis=1)
+df
+symboling	CarName	fueltype	aspiration	doornumber	carbody	drivewheel	enginelocation	wheelbase	carlength	...	enginesize	fuelsystem	boreratio	stroke	compressionratio	horsepower	peakrpm	citympg	highwaympg	price
+0	3	alfa-romero giulia	gas	std	two	convertible	rwd	front	88.6	168.8	...	130	mpfi	3.47	2.68	9.0	111	5000	21	27	13495.0
+1	3	alfa-romero stelvio	gas	std	two	convertible	rwd	front	88.6	168.8	...	130	mpfi	3.47	2.68	9.0	111	5000	21	27	16500.0
+2	1	alfa-romero Quadrifoglio	gas	std	two	hatchback	rwd	front	94.5	171.2	...	152	mpfi	2.68	3.47	9.0	154	5000	19	26	16500.0
+3	2	audi 100 ls	gas	std	four	sedan	fwd	front	99.8	176.6	...	109	mpfi	3.19	3.40	10.0	102	5500	24	30	13950.0
+4	2	audi 100ls	gas	std	four	sedan	4wd	front	99.4	176.6	...	136	mpfi	3.19	3.40	8.0	115	5500	18	22	17450.0
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+200	-1	volvo 145e (sw)	gas	std	four	sedan	rwd	front	109.1	188.8	...	141	mpfi	3.78	3.15	9.5	114	5400	23	28	16845.0
+201	-1	volvo 144ea	gas	turbo	four	sedan	rwd	front	109.1	188.8	...	141	mpfi	3.78	3.15	8.7	160	5300	19	25	19045.0
+202	-1	volvo 244dl	gas	std	four	sedan	rwd	front	109.1	188.8	...	173	mpfi	3.58	2.87	8.8	134	5500	18	23	21485.0
+203	-1	volvo 246	diesel	turbo	four	sedan	rwd	front	109.1	188.8	...	145	idi	3.01	3.40	23.0	106	4800	26	27	22470.0
+204	-1	volvo 264gl	gas	turbo	four	sedan	rwd	front	109.1	188.8	...	141	mpfi	3.78	3.15	9.5	114	5400	19	25	22625.0
+205 rows × 25 columns
+
+Analyzing The Dataset
+# Getting info of the dataset
+df.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 205 entries, 0 to 204
+Data columns (total 25 columns):
+ #   Column            Non-Null Count  Dtype  
+---  ------            --------------  -----  
+ 0   symboling         205 non-null    int64  
+ 1   CarName           205 non-null    object 
+ 2   fueltype          205 non-null    object 
+ 3   aspiration        205 non-null    object 
+ 4   doornumber        205 non-null    object 
+ 5   carbody           205 non-null    object 
+ 6   drivewheel        205 non-null    object 
+ 7   enginelocation    205 non-null    object 
+ 8   wheelbase         205 non-null    float64
+ 9   carlength         205 non-null    float64
+ 10  carwidth          205 non-null    float64
+ 11  carheight         205 non-null    float64
+ 12  curbweight        205 non-null    int64  
+ 13  enginetype        205 non-null    object 
+ 14  cylindernumber    205 non-null    object 
+ 15  enginesize        205 non-null    int64  
+ 16  fuelsystem        205 non-null    object 
+ 17  boreratio         205 non-null    float64
+ 18  stroke            205 non-null    float64
+ 19  compressionratio  205 non-null    float64
+ 20  horsepower        205 non-null    int64  
+ 21  peakrpm           205 non-null    int64  
+ 22  citympg           205 non-null    int64  
+ 23  highwaympg        205 non-null    int64  
+ 24  price             205 non-null    float64
+dtypes: float64(8), int64(7), object(10)
+memory usage: 40.2+ KB
+# Checking if there is any null value or not
+df.isnull().sum()
+symboling           0
+CarName             0
+fueltype            0
+aspiration          0
+doornumber          0
+carbody             0
+drivewheel          0
+enginelocation      0
+wheelbase           0
+carlength           0
+carwidth            0
+carheight           0
+curbweight          0
+enginetype          0
+cylindernumber      0
+enginesize          0
+fuelsystem          0
+boreratio           0
+stroke              0
+compressionratio    0
+horsepower          0
+peakrpm             0
+citympg             0
+highwaympg          0
+price               0
+dtype: int64
+# Getting the shape of the dataset
+df.shape
+(205, 25)
+# Descriptive statistical analysis of data
+df.describe()
+symboling	wheelbase	carlength	carwidth	carheight	curbweight	enginesize	boreratio	stroke	compressionratio	horsepower	peakrpm	citympg	highwaympg	price
+count	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000	205.000000
+mean	0.834146	98.756585	174.049268	65.907805	53.724878	2555.565854	126.907317	3.329756	3.255415	10.142537	104.117073	5125.121951	25.219512	30.751220	13276.710571
+std	1.245307	6.021776	12.337289	2.145204	2.443522	520.680204	41.642693	0.270844	0.313597	3.972040	39.544167	476.985643	6.542142	6.886443	7988.852332
+min	-2.000000	86.600000	141.100000	60.300000	47.800000	1488.000000	61.000000	2.540000	2.070000	7.000000	48.000000	4150.000000	13.000000	16.000000	5118.000000
+25%	0.000000	94.500000	166.300000	64.100000	52.000000	2145.000000	97.000000	3.150000	3.110000	8.600000	70.000000	4800.000000	19.000000	25.000000	7788.000000
+50%	1.000000	97.000000	173.200000	65.500000	54.100000	2414.000000	120.000000	3.310000	3.290000	9.000000	95.000000	5200.000000	24.000000	30.000000	10295.000000
+75%	2.000000	102.400000	183.100000	66.900000	55.500000	2935.000000	141.000000	3.580000	3.410000	9.400000	116.000000	5500.000000	30.000000	34.000000	16503.000000
+max	3.000000	120.900000	208.100000	72.300000	59.800000	4066.000000	326.000000	3.940000	4.170000	23.000000	288.000000	6600.000000	49.000000	54.000000	45400.000000
+# Getting all the unique car names
+df.CarName.unique()
+array(['alfa-romero giulia', 'alfa-romero stelvio',
+       'alfa-romero Quadrifoglio', 'audi 100 ls', 'audi 100ls',
+       'audi fox', 'audi 5000', 'audi 4000', 'audi 5000s (diesel)',
+       'bmw 320i', 'bmw x1', 'bmw x3', 'bmw z4', 'bmw x4', 'bmw x5',
+       'chevrolet impala', 'chevrolet monte carlo', 'chevrolet vega 2300',
+       'dodge rampage', 'dodge challenger se', 'dodge d200',
+       'dodge monaco (sw)', 'dodge colt hardtop', 'dodge colt (sw)',
+       'dodge coronet custom', 'dodge dart custom',
+       'dodge coronet custom (sw)', 'honda civic', 'honda civic cvcc',
+       'honda accord cvcc', 'honda accord lx', 'honda civic 1500 gl',
+       'honda accord', 'honda civic 1300', 'honda prelude',
+       'honda civic (auto)', 'isuzu MU-X', 'isuzu D-Max ',
+       'isuzu D-Max V-Cross', 'jaguar xj', 'jaguar xf', 'jaguar xk',
+       'maxda rx3', 'maxda glc deluxe', 'mazda rx2 coupe', 'mazda rx-4',
+       'mazda glc deluxe', 'mazda 626', 'mazda glc', 'mazda rx-7 gs',
+       'mazda glc 4', 'mazda glc custom l', 'mazda glc custom',
+       'buick electra 225 custom', 'buick century luxus (sw)',
+       'buick century', 'buick skyhawk', 'buick opel isuzu deluxe',
+       'buick skylark', 'buick century special',
+       'buick regal sport coupe (turbo)', 'mercury cougar',
+       'mitsubishi mirage', 'mitsubishi lancer', 'mitsubishi outlander',
+       'mitsubishi g4', 'mitsubishi mirage g4', 'mitsubishi montero',
+       'mitsubishi pajero', 'Nissan versa', 'nissan gt-r', 'nissan rogue',
+       'nissan latio', 'nissan titan', 'nissan leaf', 'nissan juke',
+       'nissan note', 'nissan clipper', 'nissan nv200', 'nissan dayz',
+       'nissan fuga', 'nissan otti', 'nissan teana', 'nissan kicks',
+       'peugeot 504', 'peugeot 304', 'peugeot 504 (sw)', 'peugeot 604sl',
+       'peugeot 505s turbo diesel', 'plymouth fury iii',
+       'plymouth cricket', 'plymouth satellite custom (sw)',
+       'plymouth fury gran sedan', 'plymouth valiant', 'plymouth duster',
+       'porsche macan', 'porcshce panamera', 'porsche cayenne',
+       'porsche boxter', 'renault 12tl', 'renault 5 gtl', 'saab 99e',
+       'saab 99le', 'saab 99gle', 'subaru', 'subaru dl', 'subaru brz',
+       'subaru baja', 'subaru r1', 'subaru r2', 'subaru trezia',
+       'subaru tribeca', 'toyota corona mark ii', 'toyota corona',
+       'toyota corolla 1200', 'toyota corona hardtop',
+       'toyota corolla 1600 (sw)', 'toyota carina', 'toyota mark ii',
+       'toyota corolla', 'toyota corolla liftback',
+       'toyota celica gt liftback', 'toyota corolla tercel',
+       'toyota corona liftback', 'toyota starlet', 'toyota tercel',
+       'toyota cressida', 'toyota celica gt', 'toyouta tercel',
+       'vokswagen rabbit', 'volkswagen 1131 deluxe sedan',
+       'volkswagen model 111', 'volkswagen type 3', 'volkswagen 411 (sw)',
+       'volkswagen super beetle', 'volkswagen dasher', 'vw dasher',
+       'vw rabbit', 'volkswagen rabbit', 'volkswagen rabbit custom',
+       'volvo 145e (sw)', 'volvo 144ea', 'volvo 244dl', 'volvo 245',
+       'volvo 264gl', 'volvo diesel', 'volvo 246'], dtype=object)
+# Checking the fuel types
+df.fueltype.value_counts()
+fueltype
+gas       185
+diesel     20
+Name: count, dtype: int64
+# Checking the aspiration types
+df.aspiration.value_counts()
+aspiration
+std      168
+turbo     37
+Name: count, dtype: int64
+# Checking the door numbers
+df.doornumber.value_counts()
+doornumber
+four    115
+two      90
+Name: count, dtype: int64
+# Checking the carbody types
+df.carbody.value_counts()
+carbody
+sedan          96
+hatchback      70
+wagon          25
+hardtop         8
+convertible     6
+Name: count, dtype: int64
+# Checking the drive wheel types
+df.drivewheel.value_counts()
+drivewheel
+fwd    120
+rwd     76
+4wd      9
+Name: count, dtype: int64
+# Checking the engine location
+df.enginelocation.value_counts()
+enginelocation
+front    202
+rear       3
+Name: count, dtype: int64
+# Checking the fuel systems
+df.fuelsystem.value_counts()
+fuelsystem
+mpfi    94
+2bbl    66
+idi     20
+1bbl    11
+spdi     9
+4bbl     3
+mfi      1
+spfi     1
+Name: count, dtype: int64
+Visualizing The Dataset
+# distplot of the price column
+sns.set_style("whitegrid")
+plt.figure(figsize=(7, 5))
+sns.distplot(df.price)
+plt.show()
+
+# A pairplot plot a pairwise relationships
+plt.figure(figsize=(9,9))
+sns.pairplot(df,diag_kind="kde", diag_kws=dict(shade=True, bw=.05, vertical=False))
+plt.show()
+<Figure size 900x900 with 0 Axes>
+
+Splitting the data into features and target variable
+x = df.drop(['price', 'CarName', 'fueltype', 'aspiration',	'doornumber', 'carbody',	'drivewheel', 'enginelocation', 'enginetype', 'cylindernumber', 'fuelsystem'], axis=1)
+x
+symboling	wheelbase	carlength	carwidth	carheight	curbweight	enginesize	boreratio	stroke	compressionratio	horsepower	peakrpm	citympg	highwaympg
+0	3	88.6	168.8	64.1	48.8	2548	130	3.47	2.68	9.0	111	5000	21	27
+1	3	88.6	168.8	64.1	48.8	2548	130	3.47	2.68	9.0	111	5000	21	27
+2	1	94.5	171.2	65.5	52.4	2823	152	2.68	3.47	9.0	154	5000	19	26
+3	2	99.8	176.6	66.2	54.3	2337	109	3.19	3.40	10.0	102	5500	24	30
+4	2	99.4	176.6	66.4	54.3	2824	136	3.19	3.40	8.0	115	5500	18	22
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+200	-1	109.1	188.8	68.9	55.5	2952	141	3.78	3.15	9.5	114	5400	23	28
+201	-1	109.1	188.8	68.8	55.5	3049	141	3.78	3.15	8.7	160	5300	19	25
+202	-1	109.1	188.8	68.9	55.5	3012	173	3.58	2.87	8.8	134	5500	18	23
+203	-1	109.1	188.8	68.9	55.5	3217	145	3.01	3.40	23.0	106	4800	26	27
+204	-1	109.1	188.8	68.9	55.5	3062	141	3.78	3.15	9.5	114	5400	19	25
+205 rows × 14 columns
+
+y = df['price']
+y
+0      13495.0
+1      16500.0
+2      16500.0
+3      13950.0
+4      17450.0
+        ...   
+200    16845.0
+201    19045.0
+202    21485.0
+203    22470.0
+204    22625.0
+Name: price, Length: 205, dtype: float64
+Splitting the data into training and testing sets
+# Importing train test split
+from sklearn.model_selection import train_test_split
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=1234)
+Creating Model
+Linear Regression
+# Importing Linear Regression library
+from sklearn.linear_model import LinearRegression
+
+model = LinearRegression()
+model.fit(x_train,y_train)
+LinearRegression()
+In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook.
+On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.
+Prediction
+y_pred = model.predict(x_train)
+y_pred
+array([ 6118.54422044, 16329.35470549,  6295.53867835, 11985.3940228 ,
+       40555.5972669 ,  5676.90730689, 31947.31622738, 23303.61003393,
+        6412.90807551,  9980.42428456,  6771.29445703,  8103.63503348,
+       17256.14869094, 18293.36983909, 30588.22137712, 12873.08309998,
+       17773.4493793 , 17401.22461339,  7679.06460729, 11924.94836195,
+        7576.56453237,  9293.58431697, 16867.72437477,  8534.60486258,
+       10377.78902865, 34524.31578205, 48012.74730434, 15410.1577326 ,
+       10116.42451503, 10398.1312177 , 10246.48273659,  5677.3179905 ,
+        6362.13533283,  6445.91035825, 11262.54780785, 11131.75429906,
+        8265.81607107,  6718.01715239, 10217.81026985, 11715.52693916,
+        9522.36804702, 10358.74712904,  8303.59238699, 11073.1150882 ,
+       24470.78665088,  8380.4850743 , 14797.02388201,  7133.40023429,
+       14574.33736139,  6617.32498929, 27576.18152647,  6715.44444008,
+        6104.60980486, 20176.92114639,  8608.32690522,  8290.89920132,
+        6531.92529393,  9677.5877357 ,  6271.20259691,  8907.74660194,
+       16228.88357331, 16140.9875035 , 41860.25697186, 16800.39437231,
+       17093.16786028,  8213.42040233, 13232.54604287, 13345.59776595,
+       17825.24052601, 10434.25354916,  8786.32120158, 10311.70428613,
+        6308.23186402,  6339.6223543 ,  8357.7477498 , 25589.83154085,
+       33267.59043453,  5539.86181992,  6627.81233118, 18432.99488146,
+        8474.11720376,  7448.77395139, 19501.05797437,  6894.49520195,
+        6189.80197146, 13345.59776595, 24562.36270095,  9423.48256069,
+       10273.62472912,  7728.88276041,  8290.89920132,  6428.47465399,
+       22857.31194439, 15215.42300429, 16934.46593086, 11744.19227864,
+       13540.55752329, 23104.73956471,  9680.73271861, 10297.91896565,
+       14554.76231793, 14714.69645738, 20980.66053729, 16144.04107411,
+       21474.15521719,  9760.50718495,  -629.67411926, 18607.50284597,
+        9862.05267031, 25699.81313142, 31620.79888458, 10779.81456274,
+       27670.36092318,  5859.7248929 , 15422.85091827,  6288.51485594,
+       19374.82556096, 13585.4166045 ,  6496.68310093, 19472.97019144,
+       16940.01941468, 10913.95715989,  9773.8475117 ,  6604.22732447,
+       13222.39149433, 10273.62472912, 18649.14525144, 15139.77209587,
+       15279.39713824,  8753.44026949,  6104.60980486, 19197.78093264,
+       12256.34074514, 10460.3851731 , 18476.04205217, 27341.48311359,
+        7886.52232538, 12092.06710804,  8514.73539791, 10114.71118898,
+        6516.0425665 ,  5395.90933435,  8370.84274001, 27229.78307969,
+       10937.45203518, 24187.67606183, 17913.07442167,  6715.44444008,
+       10620.31931255,  5644.03065317,  6771.29445703, 15148.6781078 ,
+        8178.26074992, 13674.26890419,  2359.26384045,  7341.80011078,
+        8422.16755618,  8482.5427739 , 10753.90393005,  6553.85906094,
+       17913.07442167,  5925.45557405, 10249.25895708, 31947.31622738])
+Error Square
+from sklearn import metrics
+
+error_square = metrics.r2_score(y_train, y_pred)
+print("Error square: ", error_square)
+Error square:  0.8717560764119725
+Actual vs Predicted Price Graph
+plt.scatter(y_train,y_pred)
+plt.xlabel('Actual price')
+plt.ylabel('Predicted price')
+plt.title("Actual vs Predicted")
+plt.show()
+
+Lasso Regression
+from sklearn.linear_model import Lasso
+
+model1 = Lasso()
+model1.fit(x_train, y_train)
+Lasso()
+In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook.
+On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.
+Predicition
+y_pred1 = model1.predict(x_train)
+y_pred1
+array([ 6121.42309304, 16336.92873174,  6286.65275879, 11990.24052303,
+       40549.52956463,  5672.35715681, 31959.91753698, 23299.26755228,
+        6414.93582517,  9988.8075274 ,  6765.10580466,  8103.82915569,
+       17260.80627858, 18304.23349911, 30582.8011063 , 12873.65916939,
+       17780.14977352, 17394.01591886,  7673.48513825, 11921.34207755,
+        7566.54131109,  9303.98706985, 16885.86524646,  8533.00161499,
+       10385.57050233, 34517.77177467, 47990.29770335, 15428.95418739,
+       10119.64090014, 10385.9486296 , 10250.68587247,  5679.6669091 ,
+        6364.14282904,  6447.95127265, 11261.60466713, 11134.77081452,
+        8267.74540145,  6714.15463938, 10220.18907981, 11721.24619334,
+        9523.05768983, 10372.52324122,  8302.79040346, 11078.59272318,
+       24473.1160324 ,  8379.29426139, 14790.68613074,  7124.95280683,
+       14587.18826688,  6604.85551712, 27580.64241441,  6709.23350891,
+        6104.12726775, 20158.98584853,  8613.11668651,  8290.09215443,
+        6525.5505081 ,  9665.93609351,  6266.18367741,  8907.59050584,
+       16224.5680027 , 16159.55181185, 41850.8132868 , 16789.83808363,
+       17108.82585676,  8219.10356065, 13245.31494307, 13341.15566069,
+       17834.85482684, 10416.24776195,  8793.22832182, 10316.87966351,
+        6299.35100782,  6337.58879708,  8364.21572614, 25591.61018442,
+       33249.24111346,  5542.38146846,  6622.91738981, 18443.91423847,
+        8475.14290128,  7450.86622667, 19510.10959349,  6893.7731332 ,
+        6184.34235452, 13341.15566069, 24556.58429901,  9415.89419477,
+       10278.78491641,  7718.92029949,  8290.09215443,  6426.47654031,
+       22855.62118104, 15233.69614959, 16928.3920886 , 11749.47733852,
+       13536.00599576, 23089.27191558,  9682.13182711, 10297.93710789,
+       14551.02945947, 14711.02739729, 20964.95449745, 16133.11847607,
+       21472.21308626,  9766.07533358,  -628.34843918, 18613.28002864,
+        9867.66132584, 25696.6612988 , 31608.9465443 , 10790.49515937,
+       27674.28775408,  5861.84159779, 15441.65243642,  6290.49298464,
+       19341.49574225, 13598.32626619,  6498.74426879, 19477.68445777,
+       16929.518823  , 10913.03269884,  9775.08735473,  6599.23232681,
+       13235.15634384, 10278.78491641, 18634.82815823, 15133.1534238 ,
+       15272.83416316,  8754.25679168,  6104.12726775, 19169.83231514,
+       12249.48928793, 10454.87510179, 18481.15759539, 27343.5947501 ,
+        7888.03658283, 12102.35801571,  8515.77729819, 10122.67979376,
+        6514.89107555,  5398.42320829,  8375.99102857, 27231.85015861,
+       10932.20331922, 24190.22471388, 17919.83051289,  6709.23350891,
+       10614.8730396 ,  5646.5964594 ,  6765.10580466, 15167.37025731,
+        8189.952662  , 13687.21400942,  2365.89555059,  7333.38135334,
+        8420.42880876,  8487.73562007, 10757.20274334,  6541.36427195,
+       17919.83051289,  5917.23179216, 10257.28123351, 31959.91753698])
+Error Square
+error_square = metrics.r2_score(y_train, y_pred1)
+print("Error square: ", error_square)
+Error square:  0.8717550082371648
+Actual vs Prediction
+plt.scatter(y_train, y_pred1)
+plt.xlabel('Actual price')
+plt.ylabel('Predicted price')
+plt.title("Actual vs Predicted")
+plt.show()
+
+Conclusion
+In this task, I took Car Price dataset and performed Linear Regression and Lasso Regression Algorithms to make model.
+Many analyses of the dataset were performed.
+Many visualizations of the dataset were created.
+Finally, I plotted a graph for actual vs. predicted values.
